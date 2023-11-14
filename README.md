@@ -19,3 +19,4 @@ Reference: [Tutorial](https://youtube.com/playlist?list=PLea8cjCua_P0qjjiG8G5FBg
 
 - [Episode 1](./docs/tutorials/Breakout%20%231%20-%20Hello%20World%20-%20Pico-8%20Hero.md)
 - [Episode 2](./docs/tutorials/Breakout%20%232%20-%20Functions%20and%20Variables%20-%20Pico-8%20Hero.md)
+- [Episode 3](./docs/tutorials/Breakout%20%233%20-%20IF-Statements%20-%20Pico-8%20Hero.md)
