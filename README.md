@@ -22,3 +22,4 @@ Reference: [Tutorial](https://youtube.com/playlist?list=PLea8cjCua_P0qjjiG8G5FBg
 - [Episode 3](./docs/tutorials/Breakout%20%233%20-%20IF-Statements%20-%20Pico-8%20Hero.md)
 - [Episode 4](./docs/tutorials/Breakout%20%234%20-%20Sound%20Effects%20-%20Pico-8%20Hero.md)
 - [Episode 5](./docs/tutorials/Breakout%20%235%20-%20Moving%20the%20Paddle%20-%20Pico-8%20Hero.md)
+- [Episode 6](./docs/tutorials/Breakout%20%236%20-%20Collision%20-%20Pico-8%20Hero.md)
