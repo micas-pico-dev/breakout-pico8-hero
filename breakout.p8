@@ -51,6 +51,7 @@ function _update()
 	end
 	
 	pad_c=7
+	-- check if ball hit pad
 	if ball_box(pad_x,pad_y,pad_w,pad_h) then
 		-- deal with collision
 		pad_c=8
@@ -65,6 +66,7 @@ function _draw()
 end
 
 function ball_box(box_x,box_y,box_w,box_h)
+	-- checks a collision of the ball with a rectangle
 	if ball_y-ball_r>box_y+box_h then
 		return false
 	end
