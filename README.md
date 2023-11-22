@@ -24,3 +24,4 @@ Reference: [Tutorial](https://youtube.com/playlist?list=PLea8cjCua_P0qjjiG8G5FBg
 - [Episode 5](./docs/tutorials/Breakout%20%235%20-%20Moving%20the%20Paddle%20-%20Pico-8%20Hero.md)
 - [Episode 6](./docs/tutorials/Breakout%20%236%20-%20Collision%20-%20Pico-8%20Hero.md)
 - [Episode 7](./docs/tutorials/Breakout%20%237%20-%20More%20Collision%20-%20Pico-8%20Hero.md)
+- [Episode 8](./docs/tutorials/Breakout%20%238%20-%20Final%20Collision%20-%20Pico-8%20Hero.md)
