@@ -8,7 +8,7 @@ box_h = 12
 
 rayx = 0
 rayy = 0
-raydx = -2
+raydx = 2
 raydy = -2
 
 debug1 = "hello trere"
@@ -84,7 +84,7 @@ function deflx_ball_box(bx,by,bdx,bdy,tx,ty,tw,th)
 				return false
 			end
 		elseif slp < 0 and bdx > 0 then
-			debug="q2"
+			debug1="q2"
 			--moving up right
 			cx = tx-bx
 			cy = ty+th-by
