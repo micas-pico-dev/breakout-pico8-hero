@@ -25,3 +25,4 @@ Reference: [Tutorial](https://youtube.com/playlist?list=PLea8cjCua_P0qjjiG8G5FBg
 - [Episode 6](./docs/tutorials/Breakout%20%236%20-%20Collision%20-%20Pico-8%20Hero.md)
 - [Episode 7](./docs/tutorials/Breakout%20%237%20-%20More%20Collision%20-%20Pico-8%20Hero.md)
 - [Episode 8](./docs/tutorials/Breakout%20%238%20-%20Final%20Collision%20-%20Pico-8%20Hero.md)
+- [Episode 9](./docs/tutorials/Breakout%20%239%20-%20Game%20States%20-%20Pico-8%20Hero.md)
