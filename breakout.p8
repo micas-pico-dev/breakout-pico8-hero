@@ -34,7 +34,7 @@ function startgame()
 	pad_h=3
 	pad_c=7
 	
-	brick_w=10
+	brick_w=9
 	brick_h=4
 	buildbricks()
 
@@ -48,16 +48,16 @@ function buildbricks()
 	brick_x={}
 	brick_y={}
 	brick_v={}
-	for i=1,10 do
-		add(brick_x,5+(i-1)*(brick_w+2))
-		add(brick_y,20)
+	for i=1,66 do
+		add(brick_x,4+((i-1)%11)*(brick_w+2))
+		add(brick_y,20+flr((i-1)/11)*(brick_h+2))
 		add(brick_v,true)
 	end
 end
 
 function serveball()
-	ball_x=5
-	ball_y=33
+	ball_x=10
+	ball_y=70
 	ball_dx=1
 	ball_dy=1
 end
@@ -202,71 +202,38 @@ function ball_box(bx,by,box_x,box_y,box_w,box_h)
 end
 
 function deflx_ball_box(bx,by,bdx,bdy,tx,ty,tw,th)
-	-- calculate wether to deflect the ball
-	-- horizontally or vertically when it hits a box
-	if bdx == 0 then
-		-- moving vertically
+	local slp=bdy/bdx
+	local cx,cy
+	
+	if bdx==0 then
 		return false
-	elseif bdy == 0 then
-		-- moving horizontally
+	elseif bdy==0 then
 		return true
+	
+	elseif slp > 0 and bdx > 0 then
+	
+		cx=tx-bx
+		cy=ty-by
+		return cx > 0 and cy/cx < slp
+	
+	elseif slp < 0 and bdx > 0 then
+	
+		cx=tx-bx
+		cy=ty+th-by
+		return cx > 0 and cy/cx >= slp
+	
+	elseif slp > 0 and bdx < 0 then
+	
+		cx=tx+tw-bx
+		cy=ty+th-by
+		return cx < 0 and cy/cx <= slp
+
 	else
-		-- moving diagonally
-		-- calculate slope
-		local slp = bdy / bdx
-		local cx, cy
-		-- check variants
-		if slp > 0 and bdx > 0 then
-			-- moving down right
-			debug1="q1"
-			cx = tx-bx
-			cy = ty-by
-			if cx<0 then
-				return false
-			elseif cy/cx < slp then
-				return true
-			else 
-				return false
-			end
-		elseif slp < 0 and bdx > 0 then
-			debug1="q2"
-			--moving up right
-			cx = tx-bx
-			cy = ty+th-by
-			if cx<=0 then
-				return false
-			elseif cy/cx < slp then
-				return false
-			else
-				return true
-			end	
-		elseif slp > 0 and bdx < 0 then
-			debug1="q3"
-			--moving left up
-			cx = tx+tw-bx
-			cy = ty+th-by
-			if cx>=0 then
-				return false
-			elseif cy/cx > slp then
-				return false
-			else
-				return true
-			end
-		else
-			--moving left down
-			debug1="q4"
-			cx = tx+tw-bx
-			cy = ty-by
-			if cx>=0 then
-				return false
-			elseif cy/cx < slp then
-				return false
-			else
-				return true
-			end
-		end 
+
+		cx=tx+tw-bx
+		cy=ty-by
+		return cx < 0 and cy/cx >= slp
 	end
-	return false
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

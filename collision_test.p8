@@ -8,8 +8,8 @@ box_h = 12
 
 rayx = 0
 rayy = 0
-raydx = 2
-raydy = -2
+raydx = -2
+raydy = 2
 
 debug1 = "hello trere"
 
@@ -40,7 +40,7 @@ function _draw()
 		px+=raydx
 		py+=raydy
 	until px<0 or px>128 or py<0 or py>128
-	if deflx_ball_box(rayx,rayy,raydx,raydy,box_x,box_y,box_w,box_h) then
+	if deflx_ball_box2(rayx,rayy,raydx,raydy,box_x,box_y,box_w,box_h) then
 		print("horizontal")
 	else
 		print("vertical")
@@ -122,6 +122,41 @@ function deflx_ball_box(bx,by,bdx,bdy,tx,ty,tw,th)
 		end 
 	end
 	return false
+end
+
+function deflx_ball_box2(bx,by,bdx,bdy,tx,ty,tw,th)
+	local slp=bdy/bdx
+	local cx,cy
+	
+	if bdx==0 then
+		return false
+	elseif bdy==0 then
+		return true
+	
+	elseif slp > 0 and bdx > 0 then
+	
+		cx=tx-bx
+		cy=ty-by
+		return cx > 0 and cy/cx < slp
+	
+	elseif slp < 0 and bdx > 0 then
+	
+		cx=tx-bx
+		cy=ty+th-by
+		return cx > 0 and cy/cx >= slp
+	
+	elseif slp > 0 and bdx < 0 then
+	
+		cx=tx+tw-bx
+		cy=ty+th-by
+		return cx < 0 and cy/cx <= slp
+
+	else
+
+		cx=tx+tw-bx
+		cy=ty-by
+		return cx < 0 and cy/cx >= slp
+	end
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
