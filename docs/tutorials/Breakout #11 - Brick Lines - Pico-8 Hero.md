@@ -2,7 +2,7 @@
 
 ## **Code Explanation**
 
-Adding `y` values to `brick_y` table
+Adding `x` values to `brick_x` table and adding `y` values to `brick_y` table
 ```lua
   ...
   -- 1
