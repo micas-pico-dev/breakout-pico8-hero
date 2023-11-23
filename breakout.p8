@@ -3,10 +3,27 @@ version 41
 __lua__
 function _init()
 	cls()
-	ball_x=1
-	ball_y=33
-	ball_dx=2
-	ball_dy=2
+	mode="start"
+end
+
+function _update60()
+	if mode=="game" then
+		update_game()
+	elseif mode=="start" then
+		update_start()
+	elseif mode=="gameover" then
+		update_gameover()
+	end
+end
+
+function update_start()
+	if btn(5) then
+		startgame()
+	end
+end
+
+function startgame()
+	mode="game"
 	ball_r=2
 	ball_dr=0.5
 	
@@ -16,37 +33,58 @@ function _init()
 	pad_w=24
 	pad_h=3
 	pad_c=7
+	
+	lives=3
+	points=0
+	serveball()
 end
 
-function _update()
-	local buttpress=false
+function serveball()
+	ball_x=5
+	ball_y=33
+	ball_dx=1
+	ball_dy=1
+end
+
+function gameover()
+	mode="gameover"
+end
+
+function update_gameover()
+	if btn(5) then
+		startgame()
+	end
+end
+
+function update_game()
+		local buttpress=false
 	local nextx,nexty
 	if btn(0) then
 		--left
-		pad_dx=-5
+		pad_dx=-2.5
 		buttpress=true
 		--pad_x-=5
 	end
 	if btn(1) then
 		--right
-		pad_dx=5
+		pad_dx=2.5
 		buttpress=true
 		--pad_x+=5
 	end
 	if not(buttpress) then
-		pad_dx=pad_dx/1.7
+		pad_dx=pad_dx/1.3
 	end
 	pad_x+=pad_dx
 
 	nextx = ball_x+ball_dx
 	nexty = ball_y+ball_dy
 	
-	if nextx > 127 or nextx < 0 then
+	if nextx > 124 or nextx < 3 then
 		nextx=mid(0,nextx,127)
 		ball_dx = -ball_dx
 		sfx(0)
 	end
-	if nexty > 127 or nexty < 0 then
+	if nexty < 10 then
 		nexty=mid(0,nexty,127)
 		ball_dy = -ball_dy
 		sfx(0)
@@ -62,16 +100,54 @@ function _update()
 			ball_dy = -ball_dy
 		end
 		sfx(1)
+		points+=1
 	end
 	
 	ball_x=nextx
 	ball_y=nexty
+	
+	if nexty > 127 then
+		sfx(2)
+		lives-=1
+		if lives<0 then
+			gameover()
+		else
+			serveball()
+		end
+	end
+
 end
 
 function _draw()
-	rectfill(0,0,127,127,1)
+	if mode=="game" then
+		draw_game()
+	elseif mode=="start" then
+		draw_start()
+	elseif mode=="gameover" then
+		draw_gameover()
+	end
+end
+
+function draw_start()
+	cls()
+	print("pico hero breakout",30,40,7)
+	print("press ❎ to start",32,80,11)
+end
+
+function draw_gameover()
+	rectfill(0,60,128,75,0)
+	print("game over",46,62,7)
+	print("press ❎ to restart",27,68,6)
+end
+
+function draw_game()
+	cls(1)
 	circfill(ball_x,ball_y,ball_r, 10)
 	rectfill(pad_x,pad_y,pad_x+pad_w,pad_y+pad_h,pad_c)
+	
+	rectfill(0,0,128,6,0)
+	print("lives:"..lives,1,1,7)
+	print("score:"..points,40,1,7)	
 end
 
 function ball_box(bx,by,box_x,box_y,box_w,box_h)
@@ -160,3 +236,4 @@ __gfx__
 __sfx__
 00010000183601836018350183301832018310000000000000000000000000000000000000000000000000000a30000000000000d300000000000000000000000000000000000000000000000000000000000000
 00010000243602436024350243302432024310000000000000000000000000000000000000000000000000000a30000000000000d300000000000000000000000000000000000000000000000000000000000000
+00050000204501e4501b4501845015450124500f4500c450094500645003450014500040000400004000040000400004000040000400004000040000400004000040000400004000040000400004000040000400
