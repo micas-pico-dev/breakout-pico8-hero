@@ -2,8 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 --goals
--- 1. sticky paddle
--- 2. angle control
 -- 3. combos
 -- 4. levels
 -- 5. different bricks
@@ -18,16 +16,11 @@ __lua__
 function _init()
 	cls()
 	mode="start"
-	slowmo=0
 end
 
 function _update60()
 	if mode=="game" then
-		slowmo=slowmo+1
-		if slowmo==60 then
-			update_game()
-			slowmo=0
-		end
+		update_game()
 	elseif mode=="start" then
 		update_start()
 	elseif mode=="gameover" then
@@ -80,9 +73,35 @@ end
 function serveball()
 	ball_x=pad_x+flr(pad_w/2)
 	ball_y=pad_y-ball_r
-	ball_dx=0.75
-	ball_dy=-0.5
+	ball_dx=1
+	ball_dy=-1
+	ball_ang=1
+	
 	sticky=true
+end
+
+function setang(ang)
+	ball_ang=ang
+	if ang==2 then
+		ball_dx=0.50*sign(ball_dx)
+		ball_dy=1.30*sign(ball_dy)
+	elseif ang==0 then
+		ball_dx=1.30*sign(ball_dx)
+		ball_dy=0.50*sign(ball_dy)
+	else
+		ball_dx=1*sign(ball_dx)
+		ball_dy=1*sign(ball_dy)
+	end
+end
+
+function sign(n)
+	if n<0 then
+		return -1
+	elseif n>0 then
+		return 1
+	else 
+		return 0
+	end
 end
 
 function gameover()
@@ -150,6 +169,7 @@ function update_game()
 			-- deal with collision
 			-- find out in which direction to deflect
 			if deflx_ball_box(ball_x,ball_y,ball_dx,ball_dy,pad_x,pad_y,pad_w,pad_h) then
+				--ball hit paddle on the side
 				ball_dx = -ball_dx
 				if ball_x < pad_x+pad_w/2 then
 					nextx=pad_x-ball_r
@@ -157,11 +177,28 @@ function update_game()
 					nextx=pad_x+pad_w+ball_r
 				end
 			else
+				--ball hit paddle on the top/bottom
 				ball_dy = -ball_dy
 				if ball_y > pad_y then
+					--bottom
 					nexty=pad_y+pad_h+ball_r	
 				else
+					--top
 					nexty=pad_y-ball_r
+					if abs(pad_dx)>2 then
+						--change angle
+						if sign(pad_dx)==sign(ball_dx) then
+							--flatten angle
+							setang(mid(0,ball_ang-1,2))
+						else
+							--raise angle
+							if ball_ang==2 then
+								ball_dx=-ball_dx
+							else
+								setang(mid(0,ball_ang+1,2))											
+							end
+						end
+					end 
 				end
 			end
 			sfx(1)
