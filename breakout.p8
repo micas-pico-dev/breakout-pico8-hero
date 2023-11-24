@@ -18,11 +18,16 @@ __lua__
 function _init()
 	cls()
 	mode="start"
+	slowmo=0
 end
 
 function _update60()
 	if mode=="game" then
-		update_game()
+		slowmo=slowmo+1
+		if slowmo==60 then
+			update_game()
+			slowmo=0
+		end
 	elseif mode=="start" then
 		update_start()
 	elseif mode=="gameover" then
@@ -75,8 +80,8 @@ end
 function serveball()
 	ball_x=pad_x+flr(pad_w/2)
 	ball_y=pad_y-ball_r
-	ball_dx=1
-	ball_dy=-1
+	ball_dx=0.75
+	ball_dy=-0.5
 	sticky=true
 end
 
@@ -112,7 +117,7 @@ function update_game()
 		end
 	end
 	
-	if sticky and btnp(5) then
+	if sticky and btn(5) then
 		sticky=false
 	end
 	
