@@ -3,9 +3,10 @@ version 41
 __lua__
 --goals
 -- 4. levels
---     generate level patterns      
---				 stage clearing
---
+
+--     level finished detection      
+--				 next level screen
+
 -- 5. different bricks
 -- 6. powerups
 -- 7. juicyness 
@@ -18,8 +19,13 @@ __lua__
 function _init()
 	cls()
 	mode="start"
-	level="bxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
+	level=""
 	debug=""
+	levelnum=1
+	levels={}
+	levels[1]="x5b"
+	levels[2]="x4b"
+--	levels[2] = "bxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
 end
 
 function _update60()
@@ -29,11 +35,13 @@ function _update60()
 		update_start()
 	elseif mode=="gameover" then
 		update_gameover()
+	elseif mode=="levelover" then
+		update_levelover()
 	end
 end
 
 function update_start()
-	if btn(5) then
+	if btnp(5) then
 		startgame()
 	end
 end
@@ -52,6 +60,9 @@ function startgame()
 	
 	brick_w=9
 	brick_h=4
+	
+	levelnum = 1
+	level = levels[levelnum]
 	buildbricks(level)
 
 	lives=3
@@ -63,6 +74,31 @@ function startgame()
 	
 	serveball()
 end
+
+function nextlevel()
+	mode="game"
+	pad_x=52
+	pad_y=120
+	pad_dx=0
+	
+	levelnum+=1
+	if levelnum>#levels then
+		-- we've beaten the game
+		-- we need some kind of special
+		-- screen here
+		mode="start"
+		return
+	end
+	level=levels[levelnum]
+	buildbricks(level)
+
+	sticky=true
+	
+	chain=1
+	
+	serveball()
+end
+
 
 function buildbricks(lvl)
 	local i,j,last
@@ -83,7 +119,7 @@ function buildbricks(lvl)
 		elseif char=="x" then
 			last="x"
 		elseif char>="1" and char<="9" then
-			debug=char
+			--debug=char
 			for o=1,char+0 do
 				if last=="b" then
 					add(brick_x,4+((j-1)%11)*(brick_w+2))
@@ -97,6 +133,17 @@ function buildbricks(lvl)
 			j-=1
 		end
 	end
+end
+
+function levelfinished()
+	if #brick_v==0 then return true end
+	
+	for i=1,#brick_v do
+		if brick_v[i]==true then
+			return false
+		end
+	end
+	return true
 end
 
 function serveball()
@@ -138,9 +185,19 @@ function gameover()
 	mode="gameover"
 end
 
+function levelover()
+	mode="levelover"
+end
+
 function update_gameover()
-	if btn(5) then
+	if btnp(5) then
 		startgame()
+	end
+end
+
+function update_levelover()
+	if btnp(5) then
+		nextlevel()
 	end
 end
 
@@ -254,6 +311,10 @@ function update_game()
 				points+=10*chain
 				chain+=1
 				chain=mid(1,chain,7)
+				if levelfinished() then
+					_draw()
+					levelover()
+				end
 			end
 		end
 		
@@ -279,6 +340,8 @@ function _draw()
 		draw_start()
 	elseif mode=="gameover" then
 		draw_gameover()
+	elseif mode=="levelover" then
+		draw_levelover()
 	end
 end
 
@@ -292,6 +355,12 @@ function draw_gameover()
 	rectfill(0,60,128,75,0)
 	print("game over",46,62,7)
 	print("press ❎ to restart",27,68,6)
+end
+
+function draw_levelover()
+	rectfill(0,60,128,75,0)
+	print("stage clear!",46,62,7)
+	print("press ❎ to continue",27,68,6)
 end
 
 function draw_game()
