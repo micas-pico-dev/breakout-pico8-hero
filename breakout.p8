@@ -23,9 +23,10 @@ function _init()
 	debug=""
 	levelnum=1
 	levels={}
-	levels[1]="x5b"
 	levels[2]="x4b"
-	levels[1] = "hxixsxpxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
+--	levels[2]="x4b"
+--	levels[1] = "hxixsxpxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
+	levels[1] = "////x4b/s9s"
 end
 
 function _update60()
@@ -159,7 +160,7 @@ function levelfinished()
 	if #brick_v==0 then return true end
 	
 	for i=1,#brick_v do
-		if brick_v[i]==true then
+		if brick_v[i]==true and brick_t[i] != "i" then
 			return false
 		end
 	end
@@ -243,7 +244,7 @@ function update_game()
 		end
 	end
 	
-	if sticky and btn(5) then
+	if sticky and btnp(5) then
 		sticky=false
 	end
 	
@@ -326,11 +327,8 @@ function update_game()
 					end
 				end
 				brickhit=true
-				sfx(2+chain)
-				brick_v[i]=false
-				points+=10*chain
-				chain+=1
-				chain=mid(1,chain,7)
+				hitbrick(i)
+				
 				if levelfinished() then
 					_draw()
 					levelover()
@@ -340,7 +338,7 @@ function update_game()
 		
 		ball_x=nextx
 		ball_y=nexty
-		
+		checkexplosions()
 		if nexty > 127 then
 			sfx(2)
 			lives-=1
@@ -349,6 +347,65 @@ function update_game()
 			else
 				serveball()
 			end
+		end
+	end
+end
+
+function hitbrick(_i)
+	if brick_t[_i]=="b" then
+		sfx(2+chain)
+		brick_v[_i]=false
+		points+=10*chain
+		chain+=1
+		chain=mid(1,chain,7)
+	elseif brick_t[_i]=="i" then
+		sfx(10)
+	elseif brick_t[_i]=="h" then
+		sfx(10)
+		brick_t[_i]="b"
+	elseif brick_t[_i]=="p" then
+		sfx(2+chain)
+		brick_v[_i]=false
+		points+=10*chain
+		chain+=1
+		chain=mid(1,chain,7)
+		-- todo: trigger powerup
+	elseif brick_t[_i]=="s" then
+		sfx(2+chain)
+		brick_t[_i]="zz"
+		points+=10*chain
+		chain+=1
+		chain=mid(1,chain,7)
+	end
+end
+
+function checkexplosions()
+	for i=1,#brick_x do
+		if brick_t[i] == "zz" then
+			brick_t[i] = "z"
+		end
+	end
+	for i=1,#brick_x do
+		if brick_t[i] == "z" then
+			explodebrick(i)
+		end
+	end
+	for i=1,#brick_x do
+		if brick_t[i] == "zz" then
+			brick_t[i] = "z"
+		end
+	end
+end
+
+function explodebrick(_i)
+	brick_v[_i]=false
+	for j=1,#brick_x do
+		if j!=_i 
+		and brick_v[j] 
+		and abs(brick_x[j] - brick_x[_i]) <= (brick_w+2)
+		and abs(brick_y[j] - brick_y[_i]) <= (brick_h+2)
+		then
+			hitbrick(j)
 		end
 	end
 end
@@ -403,13 +460,15 @@ function draw_game()
 			if brick_t[i] == "b" then
 				brickcol=14
 			elseif brick_t[i] == "i" then
-				brickcol=5
+				brickcol=6
 			elseif brick_t[i] == "h" then
 				brickcol=15
 			elseif brick_t[i] == "s" then
-				brickcol=10
+				brickcol=9
 			elseif brick_t[i] == "p" then
 				brickcol=12
+			elseif brick_t[i] == "z" or brick_t[i] == "zz" then
+				brickcol=8
 			end
 			rectfill(brick_x[i],brick_y[i],brick_x[i]+brick_w,brick_y[i]+brick_h,brickcol)
 		end
@@ -486,3 +545,4 @@ __sfx__
 00020000313603636036350363303a30003300003000030000300003000030000300003000030000300003000a30000300003000d300003000030000300003000030000300003000030000300003000030000300
 00020000333603836038350383303b30003300003000030000300003000030000300003000030000300003000a30000300003000d300003000030000300003000030000300003000030000300003000030000300
 00020000353603a3603a3503a3303e30003300003000030000300003000030000300003000030000300003000a30000300003000d300003000030000300003000030000300003000030000300003000030000300
+00020000394603546035450354303440003400004000040000400004000040000400004000040000400004000a40000400004000d400004000040000400004000040000400004000040000400004000040000400
