@@ -2,10 +2,18 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 --goals
--- todo: explosions do not
---       trigger combos!
-
 -- 6. powerups
+-- 		 - sound effects
+-- 		 - pill types
+
+--    - speed down
+--    - 1up
+--    - sticky
+--    - expand
+--    - expand/reduct
+--    - megaball
+--    - multiball
+
 -- 7. juicyness 
 --     arrow anim
 --     text blinking
@@ -20,10 +28,10 @@ function _init()
 	debug=""
 	levelnum=1
 	levels={}
-	levels[2]="x4b"
+	levels[1]="b9b/x4p"
 --	levels[2]="x4b"
 --	levels[1] = "hxixsxpxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
-	levels[1] = "////x4b/s9s"
+	--levels[1] = "////x4b/s9s"
 end
 
 function _update60()
@@ -97,7 +105,6 @@ function nextlevel()
 	serveball()
 end
 
-
 function buildbricks(lvl)
 	local i,j,last
 	brick_x={}
@@ -146,6 +153,13 @@ function buildbricks(lvl)
 	end
 end
 
+function resetpills()
+	pill_x={}
+	pill_y={}
+	pill_v={}
+	pill_t={}
+end
+
 function addbrick(_i,_t)
 	add(brick_x,4+((_i-1)%11)*(brick_w+2))
 	add(brick_y,20+flr((_i-1)/11)*(brick_h+2))
@@ -171,6 +185,7 @@ function serveball()
 	ball_dy=-1
 	ball_ang=1
 	chain=1
+	resetpills()
 	
 	sticky=true
 end
@@ -331,7 +346,23 @@ function update_game()
 		
 		ball_x=nextx
 		ball_y=nexty
+		
+		-- move pills
+		for i=1,#pill_x do
+			if pill_v[i] then
+				pill_y[i]+=0.7
+				if pill_y[i] > 128 then
+					pill_v[i]=false
+				end
+				if box_box(pill_x[i],pill_y[i],8,6,pad_x,pad_y,pad_w,pad_h) then
+					debug="pickup"
+					pill_v[i]=false
+				end
+			end
+		end
+		
 		checkexplosions()
+		
 		if nexty > 127 then
 			sfx(2)
 			lives-=1
@@ -371,7 +402,7 @@ function hitbrick(_i,_combo)
 			chain+=1
 			chain=mid(1,chain,7)
 		end
-		-- todo: trigger powerup
+		spawnpill(brick_x[_i],brick_y[_i],1)
 	elseif brick_t[_i]=="s" then
 		sfx(2+chain)
 		brick_t[_i]="zz"
@@ -381,6 +412,17 @@ function hitbrick(_i,_combo)
 			chain=mid(1,chain,7)
 		end
 	end
+end
+
+function spawnpill(_x,_y,_t)
+	add(pill_x,_x)
+	add(pill_y,_y)
+	add(pill_v,true)
+	add(pill_t,_t)
+--	pill_x[#pill_x+1]=v
+--	pill_y[#pill_x]=_y
+--	pill_v[#pill_x]=true
+--	pill_t[#pill_x]=_t
 end
 
 function checkexplosions()
@@ -478,6 +520,12 @@ function draw_game()
 		end
 	end
 	
+	for i=1,#pill_x do
+		if pill_v[i] then
+			spr(1,pill_x[i],pill_y[i])
+		end
+	end
+	
 	rectfill(0,0,128,6,0)
 	if debug!="" then
 		print(debug,1,1,7)
@@ -494,6 +542,15 @@ function ball_box(bx,by,box_x,box_y,box_w,box_h)
 	if by+ball_r<box_y then return false end
 	if bx-ball_r>box_x+box_w then return false end
 	if bx+ball_r<box_x then return false end
+	return true	
+end
+
+function box_box(box1_x,box1_y,box1_w,box1_h,box2_x,box2_y,box2_w,box2_h)
+	-- checks a collision of the two boxes
+	if box1_y>box2_y+box2_h then return false end
+	if box1_y+box1_h<box2_y then return false end
+	if box1_x>box2_x+box2_w then return false end
+	if box1_x+box1_w<box2_x then return false end
 	return true	
 end
 
@@ -532,12 +589,12 @@ function deflx_ball_box(bx,by,bdx,bdy,tx,ty,tw,th)
 	end
 end
 __gfx__
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000077777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000799949990000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700999499990000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000999949990000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000999499990000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700099999900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
 00010000183601836018350183301832018310000000000000000000000000000000000000000000000000000a30000000000000d300000000000000000000000000000000000000000000000000000000000000
 01010000243602436024350243302432024310000000000000000000000000000000000000000000000000000a30000000000000d300000000000000000000000000000000000000000000000000000000000000
