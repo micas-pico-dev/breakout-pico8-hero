@@ -2,12 +2,12 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 --goals
--- 4. levels
-
---     level finished detection      
---				 next level screen
-
 -- 5. different bricks
+--    - hardened brick
+--    - indestructable brick
+--    - exploding brick
+--    - powerup brick
+
 -- 6. powerups
 -- 7. juicyness 
 --     arrow anim
@@ -25,7 +25,7 @@ function _init()
 	levels={}
 	levels[1]="x5b"
 	levels[2]="x4b"
---	levels[2] = "bxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
+	levels[1] = "hxixsxpxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
 end
 
 function _update60()
@@ -105,15 +105,26 @@ function buildbricks(lvl)
 	brick_x={}
 	brick_y={}
 	brick_v={}
+	brick_t={}
+	
 	j=0
+	-- b = normal brick
+	-- x = empty space
+	-- i = indestructable brick
+	-- h = hardened brick
+	-- p = sploding brick
+	-- p = powerup brick
+	
 	for i=1,#lvl do
 		j+=1
 		local char=sub(lvl,i,i)
-		if char=="b" then
-			last="b"
-			add(brick_x,4+((j-1)%11)*(brick_w+2))
-			add(brick_y,20+flr((j-1)/11)*(brick_h+2))
-			add(brick_v,true)
+		if char=="b" 
+		or char=="i" 
+		or char=="h" 
+		or char=="s" 
+		or char=="p" then
+			last=char
+			addbrick(j,char)
 		elseif char=="/" then
 			j=(flr((j-1)/11)+1)*11
 		elseif char=="x" then
@@ -121,10 +132,12 @@ function buildbricks(lvl)
 		elseif char>="1" and char<="9" then
 			--debug=char
 			for o=1,char+0 do
-				if last=="b" then
-					add(brick_x,4+((j-1)%11)*(brick_w+2))
-					add(brick_y,20+flr((j-1)/11)*(brick_h+2))
-					add(brick_v,true)
+				if last=="b" 
+				or last=="i" 
+				or last=="h" 
+				or last=="s" 
+				or last=="p" then
+					addbrick(j,last)
 				elseif last=="x" then
 					--nothing
 				end
@@ -133,6 +146,13 @@ function buildbricks(lvl)
 			j-=1
 		end
 	end
+end
+
+function addbrick(_i,_t)
+	add(brick_x,4+((_i-1)%11)*(brick_w+2))
+	add(brick_y,20+flr((_i-1)/11)*(brick_h+2))
+	add(brick_v,true)
+	add(brick_t,_t)
 end
 
 function levelfinished()
@@ -377,9 +397,21 @@ function draw_game()
 	rectfill(pad_x,pad_y,pad_x+pad_w,pad_y+pad_h,pad_c)
 	
 	-- draw bricks
+	local brickcol
 	for i=1,#brick_x do
 		if brick_v[i] then
-			rectfill(brick_x[i],brick_y[i],brick_x[i]+brick_w,brick_y[i]+brick_h,14)
+			if brick_t[i] == "b" then
+				brickcol=14
+			elseif brick_t[i] == "i" then
+				brickcol=5
+			elseif brick_t[i] == "h" then
+				brickcol=15
+			elseif brick_t[i] == "s" then
+				brickcol=10
+			elseif brick_t[i] == "p" then
+				brickcol=12
+			end
+			rectfill(brick_x[i],brick_y[i],brick_x[i]+brick_w,brick_y[i]+brick_h,brickcol)
 		end
 	end
 	
