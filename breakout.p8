@@ -2,11 +2,8 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 --goals
--- 5. different bricks
---    - hardened brick
---    - indestructable brick
---    - exploding brick
---    - powerup brick
+-- todo: explosions do not
+--       trigger combos!
 
 -- 6. powerups
 -- 7. juicyness 
@@ -327,12 +324,8 @@ function update_game()
 					end
 				end
 				brickhit=true
-				hitbrick(i)
+				hitbrick(i,true)
 				
-				if levelfinished() then
-					_draw()
-					levelover()
-				end
 			end
 		end
 		
@@ -349,15 +342,22 @@ function update_game()
 			end
 		end
 	end
+	
+	if levelfinished() then
+		_draw()
+		levelover()
+	end
 end
 
-function hitbrick(_i)
+function hitbrick(_i,_combo)
 	if brick_t[_i]=="b" then
 		sfx(2+chain)
 		brick_v[_i]=false
-		points+=10*chain
-		chain+=1
-		chain=mid(1,chain,7)
+		if _combo then
+			points+=10*chain
+			chain+=1
+			chain=mid(1,chain,7)
+		end
 	elseif brick_t[_i]=="i" then
 		sfx(10)
 	elseif brick_t[_i]=="h" then
@@ -366,16 +366,20 @@ function hitbrick(_i)
 	elseif brick_t[_i]=="p" then
 		sfx(2+chain)
 		brick_v[_i]=false
-		points+=10*chain
-		chain+=1
-		chain=mid(1,chain,7)
+		if _combo then
+			points+=10*chain
+			chain+=1
+			chain=mid(1,chain,7)
+		end
 		-- todo: trigger powerup
 	elseif brick_t[_i]=="s" then
 		sfx(2+chain)
 		brick_t[_i]="zz"
-		points+=10*chain
-		chain+=1
-		chain=mid(1,chain,7)
+		if _combo then
+			points+=10*chain
+			chain+=1
+			chain=mid(1,chain,7)
+		end
 	end
 end
 
