@@ -287,8 +287,14 @@ function update_game()
 		ball_x=pad_x + sticky_x
 		ball_y=pad_y-ball_r-1
 	else
-		nextx = ball_x+ball_dx
-		nexty = ball_y+ball_dy
+		-- regular ball physics
+		if powerup==1 then
+			nextx = ball_x+(ball_dx/2)
+			nexty = ball_y+(ball_dy/2)
+		else
+			nextx = ball_x+ball_dx
+			nexty = ball_y+ball_dy
+		end
 		
 		-- check if ball hit wall
 		if nextx > 124 or nextx < 3 then
@@ -357,15 +363,17 @@ function update_game()
 				-- deal with collision
 				-- find out in which direction to deflect
 				if not(brickhit) then
-					if deflx_ball_box(ball_x,ball_y,ball_dx,ball_dy,brick_x[i],brick_y[i],brick_w,brick_h) then
-						ball_dx = -ball_dx
-					else
-						ball_dy = -ball_dy
+					if powerup==6 and brick_t[i]=="i" 
+					or powerup!=6 then
+						if deflx_ball_box(ball_x,ball_y,ball_dx,ball_dy,brick_x[i],brick_y[i],brick_w,brick_h) then
+							ball_dx = -ball_dx
+						else
+							ball_dy = -ball_dy
+						end
 					end
 				end
 				brickhit=true
 				hitbrick(i,true)
-				
 			end
 		end
 		
@@ -418,7 +426,7 @@ function powerupget(_p)
 	if _p==1 then
 		--slowdown
 		powerup=1
-		powerup_t=0
+		powerup_t=900
 	elseif _p==2 then
 		--life
 		powerup=2
@@ -439,11 +447,11 @@ function powerupget(_p)
 	elseif _p==6 then
 		--megaball
 		powerup=6
-		powerup_t=0
+		powerup_t=900
 	elseif _p==7 then
 		--multiball
 		powerup=7
-		powerup_t=0
+		powerup_t=900
 	end
 end
 
@@ -459,8 +467,18 @@ function hitbrick(_i,_combo)
 	elseif brick_t[_i]=="i" then
 		sfx(10)
 	elseif brick_t[_i]=="h" then
-		sfx(10)
-		brick_t[_i]="b"
+		if powerup==6 then
+			sfx(2+chain)
+			brick_v[_i]=false
+			if _combo then
+				points+=10*chain*pointsmult
+				chain+=1
+				chain=mid(1,chain,7)
+			end
+		else	
+			sfx(10)
+			brick_t[_i]="b"
+		end
 	elseif brick_t[_i]=="p" then
 		sfx(2+chain)
 		brick_v[_i]=false
@@ -485,7 +503,7 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	_t=5
+	_t=6
 	add(pill_x,_x)
 	add(pill_y,_y)
 	add(pill_v,true)
