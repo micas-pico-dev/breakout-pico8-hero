@@ -103,10 +103,7 @@ end
 
 function buildbricks(lvl)
 	local i,j,last
-	brick_x={}
-	brick_y={}
-	brick_v={}
-	brick_t={}
+	bricks={}
 	
 	j=0
 	-- b = normal brick
@@ -150,24 +147,25 @@ function buildbricks(lvl)
 end
 
 function resetpills()
-	pill_x={}
-	pill_y={}
-	pill_v={}
-	pill_t={}
+	pill={}
 end
 
 function addbrick(_i,_t)
-	add(brick_x,4+((_i-1)%11)*(brick_w+2))
-	add(brick_y,20+flr((_i-1)/11)*(brick_h+2))
-	add(brick_v,true)
-	add(brick_t,_t)
+	local _b
+	_b={}
+	_b.x=4+((_i-1)%11)*(brick_w+2)
+	_b.y=20+flr((_i-1)/11)*(brick_h+2)
+	_b.v=true
+	_b.t=_t
+	add(bricks,_b)
+
 end
 
 function levelfinished()
-	if #brick_v==0 then return true end
+	if #bricks==0 then return true end
 	
-	for i=1,#brick_v do
-		if brick_v[i]==true and brick_t[i] != "i" then
+	for i=1,#bricks do
+		if bricks[i].v==true and bricks[i].t != "i" then
 			return false
 		end
 	end
@@ -357,15 +355,15 @@ function update_game()
 		end
 		
 		brickhit=false
-		for i=1,#brick_x do
+		for i=1,#bricks do
 			-- check if ball hit brick
-			if brick_v[i] and ball_box(nextx,nexty,brick_x[i],brick_y[i],brick_w,brick_h) then
+			if bricks[i].v and ball_box(nextx,nexty,bricks[i].x,bricks[i].y,brick_w,brick_h) then
 				-- deal with collision
 				-- find out in which direction to deflect
 				if not(brickhit) then
-					if powerup==6 and brick_t[i]=="i" 
+					if powerup==6 and bricks[i].t=="i" 
 					or powerup!=6 then
-						if deflx_ball_box(ball_x,ball_y,ball_dx,ball_dy,brick_x[i],brick_y[i],brick_w,brick_h) then
+						if deflx_ball_box(ball_x,ball_y,ball_dx,ball_dy,bricks[i].x,bricks[i].y,brick_w,brick_h) then
 							ball_dx = -ball_dx
 						else
 							ball_dy = -ball_dy
@@ -393,17 +391,19 @@ function update_game()
 	end--end of sticky if
 	
 	-- check collision for pills
-	for i=1,#pill_x do
-		if pill_v[i] then
-			pill_y[i]+=0.7
-			if pill_y[i] > 128 then
-				pill_v[i]=false
-			end
-			if box_box(pill_x[i],pill_y[i],8,6,pad_x,pad_y,pad_w,pad_h) then
-				powerupget(pill_t[i])
-				pill_v[i]=false
-				sfx(11)
-			end
+	for i=#pill,1,-1 do
+	
+		pill[i].y+=0.7
+		if pill[i].y > 128 then
+			--remove pill
+			del(pill,pill[i])
+			i-=1
+		elseif box_box(pill[i].x,pill[i].y,8,6,pad_x,pad_y,pad_w,pad_h) then
+			powerupget(pill[i].t)
+			--remove pill
+			del(pill,pill[i])
+			i-=1
+			sfx(11)
 		end
 	end
 	
@@ -456,20 +456,20 @@ function powerupget(_p)
 end
 
 function hitbrick(_i,_combo)
-	if brick_t[_i]=="b" then
+	if bricks[_i].t=="b" then
 		sfx(2+chain)
-		brick_v[_i]=false
+		bricks[_i].v=false
 		if _combo then
 			points+=10*chain*pointsmult
 			chain+=1
 			chain=mid(1,chain,7)
 		end
-	elseif brick_t[_i]=="i" then
+	elseif bricks[_i].t=="i" then
 		sfx(10)
-	elseif brick_t[_i]=="h" then
+	elseif bricks[_i].t=="h" then
 		if powerup==6 then
 			sfx(2+chain)
-			brick_v[_i]=false
+			bricks[_i].v=false
 			if _combo then
 				points+=10*chain*pointsmult
 				chain+=1
@@ -477,20 +477,20 @@ function hitbrick(_i,_combo)
 			end
 		else	
 			sfx(10)
-			brick_t[_i]="b"
+			bricks[_i].t="b"
 		end
-	elseif brick_t[_i]=="p" then
+	elseif bricks[_i].t=="p" then
 		sfx(2+chain)
-		brick_v[_i]=false
+		bricks[_i].v=false
 		if _combo then
 			points+=10*chain*pointsmult
 			chain+=1
 			chain=mid(1,chain,7)
 		end
-		spawnpill(brick_x[_i],brick_y[_i])
-	elseif brick_t[_i]=="s" then
+		spawnpill(bricks[_i].x,bricks[_i].y)
+	elseif bricks[_i].t=="s" then
 		sfx(2+chain)
-		brick_t[_i]="zz"
+		bricks[_i].t="zz"
 		if _combo then
 			points+=10*chain*pointsmult
 			chain+=1
@@ -503,42 +503,41 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	_t=6
-	add(pill_x,_x)
-	add(pill_y,_y)
-	add(pill_v,true)
-	add(pill_t,_t)
---	pill_x[#pill_x+1]=v
---	pill_y[#pill_x]=_y
---	pill_v[#pill_x]=true
---	pill_t[#pill_x]=_t
+	
+	_pill={}
+	_pill.x=_x
+	_pill.y=_y
+	_pill.t=_t
+
+	add(pill,_pill)
+
 end
 
 function checkexplosions()
-	for i=1,#brick_x do
-		if brick_t[i] == "zz" then
+	for i=1,#bricks do
+		if bricks[i].t == "zz" then
 			brick_t[i] = "z"
 		end
 	end
-	for i=1,#brick_x do
-		if brick_t[i] == "z" then
+	for i=1,#bricks do
+		if bricks[i].t == "z" then
 			explodebrick(i)
 		end
 	end
-	for i=1,#brick_x do
-		if brick_t[i] == "zz" then
-			brick_t[i] = "z"
+	for i=1,#bricks do
+		if bricks[i].t == "zz" then
+			bricks[i].t = "z"
 		end
 	end
 end
 
 function explodebrick(_i)
-	brick_v[_i]=false
-	for j=1,#brick_x do
+	bricks[_i].v=false
+	for j=1,#bricks do
 		if j!=_i 
-		and brick_v[j] 
-		and abs(brick_x[j] - brick_x[_i]) <= (brick_w+2)
-		and abs(brick_y[j] - brick_y[_i]) <= (brick_h+2)
+		and bricks[j].v 
+		and abs(bricks[j].x - bricks[_i].x) <= (brick_w+2)
+		and abs(bricks[j].y - bricks[_i].y) <= (brick_h+2)
 		then
 			hitbrick(j)
 		end
@@ -590,34 +589,32 @@ function draw_game()
 	
 	-- draw bricks
 	local brickcol
-	for i=1,#brick_x do
-		if brick_v[i] then
-			if brick_t[i] == "b" then
+	for i=1,#bricks do
+		if bricks[i].v then
+			if bricks[i].t == "b" then
 				brickcol=14
-			elseif brick_t[i] == "i" then
+			elseif bricks[i].t == "i" then
 				brickcol=6
-			elseif brick_t[i] == "h" then
+			elseif bricks[i].t == "h" then
 				brickcol=15
-			elseif brick_t[i] == "s" then
+			elseif bricks[i].t == "s" then
 				brickcol=9
-			elseif brick_t[i] == "p" then
+			elseif bricks[i].t == "p" then
 				brickcol=12
-			elseif brick_t[i] == "z" or brick_t[i] == "zz" then
+			elseif bricks[i].t == "z" or brick_t[i] == "zz" then
 				brickcol=8
 			end
-			rectfill(brick_x[i],brick_y[i],brick_x[i]+brick_w,brick_y[i]+brick_h,brickcol)
+			rectfill(bricks[i].x,bricks[i].y,bricks[i].x+brick_w,bricks[i].y+brick_h,brickcol)
 		end
 	end
 	
-	for i=1,#pill_x do
-		if pill_v[i] then
-			if pill_t[i]==5 then
-				palt(0,false)
-				palt(15,true)
-			end
-			spr(pill_t[i],pill_x[i],pill_y[i])
-			palt()
+	for i=1,#pill do
+		if pill[i].t==5 then
+			palt(0,false)
+			palt(15,true)
 		end
+		spr(pill[i].t,pill[i].x,pill[i].y)
+		palt()
 	end
 	
 	rectfill(0,0,128,6,0)
