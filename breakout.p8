@@ -2,9 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 --goals
--- 6. powerups
---    - multiball
-
 -- 7. juicyness 
 --     arrow anim
 --     text blinking
@@ -201,6 +198,17 @@ function newball()
 	return b
 end
 
+function copyball(ob)
+	local b
+	b={}
+	b.x=ob.x
+	b.y=ob.y
+	b.dx=ob.dx
+	b.dy=ob.dy
+	b.ang=ob.ang
+	return b
+end
+
 function setang(bl,ang)
 	bl.ang=ang
 	if ang==2 then
@@ -213,6 +221,25 @@ function setang(bl,ang)
 		bl.dx=1*sign(bl.dx)
 		bl.dy=1*sign(bl.dy)
 	end
+end
+
+function multiball()
+	ball2=copyball(ball[1])
+	ball3=copyball(ball[1])
+	
+	if ball[1].ang==0 then
+		setang(ball2,1)
+		setang(ball3,2)
+	elseif ball[1].ang==1 then
+		setang(ball2,0)
+		setang(ball3,2)
+	else
+		setang(ball2,0)
+		setang(ball3,1)
+	end
+	
+	ball[#ball+1]=ball2
+	ball[#ball+1]=ball3
 end
 
 function sign(n)
@@ -430,11 +457,15 @@ function updateball(bi)
 		-- check if ball left screen
 		if nexty > 127 then
 			sfx(2)
-			lives-=1
-			if lives<0 then
-				gameover()
+			if #ball > 1 then
+				del(ball,myball)
 			else
-				serveball()
+				lives-=1
+				if lives<0 then
+					gameover()
+				else
+					serveball()
+				end
 			end
 		end
 	end--end of sticky if
@@ -470,6 +501,7 @@ function powerupget(_p)
 		--multiball
 		powerup=7
 		powerup_t=900
+		multiball()
 	end
 end
 
@@ -521,7 +553,7 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	
+	_t=7
 	_pill={}
 	_pill.x=_x
 	_pill.y=_y
