@@ -188,6 +188,9 @@ function serveball()
 	resetpills()
 	
 	sticky=true
+	
+	powerup=0
+	powerup_t=0
 end
 
 function setang(ang)
@@ -321,8 +324,14 @@ function update_game()
 					end 
 				end
 			end
+			
 			sfx(1)
 			chain=1
+			
+			--catch powerup
+			if powerup==3 then
+				sticky=true	
+			end
 		end
 		
 		brickhit=false
@@ -347,22 +356,7 @@ function update_game()
 		ball_x=nextx
 		ball_y=nexty
 		
-		-- move pills
-		for i=1,#pill_x do
-			if pill_v[i] then
-				pill_y[i]+=0.7
-				if pill_y[i] > 128 then
-					pill_v[i]=false
-				end
-				if box_box(pill_x[i],pill_y[i],8,6,pad_x,pad_y,pad_w,pad_h) then
-					pill_v[i]=false
-					sfx(11)
-				end
-			end
-		end
-		
-		checkexplosions()
-		
+		-- check if ball left screen
 		if nexty > 127 then
 			sfx(2)
 			lives-=1
@@ -372,11 +366,68 @@ function update_game()
 				serveball()
 			end
 		end
+	end--end of sticky if
+	
+	-- check collision for pills
+	for i=1,#pill_x do
+		if pill_v[i] then
+			pill_y[i]+=0.7
+			if pill_y[i] > 128 then
+				pill_v[i]=false
+			end
+			if box_box(pill_x[i],pill_y[i],8,6,pad_x,pad_y,pad_w,pad_h) then
+				powerupget(pill_t[i])
+				pill_v[i]=false
+				sfx(11)
+			end
+		end
 	end
 	
+	checkexplosions()
+		
 	if levelfinished() then
 		_draw()
 		levelover()
+	end
+	
+	if powerup!=0 then
+		powerup_t-=1
+		if powerup_t<=0 then
+			powerup=0
+		end
+	end
+end
+
+function powerupget(_p)
+	if _p==1 then
+		--slowdown
+		powerup=1
+		powerup_t=0
+	elseif _p==2 then
+		--life
+		powerup=2
+		powerup_t=0
+		lives+=1
+	elseif _p==3 then
+		--catch
+		powerup=3
+		powerup_t=900
+	elseif _p==4 then
+		--expand
+		powerup=4
+		powerup_t=0
+	elseif _p==5 then
+		--reduce
+		powerup=5
+		powerup_t=0
+	elseif _p==6 then
+		--megaball
+		powerup=6
+		powerup_t=0
+	elseif _p==7 then
+		--multiball
+		powerup=7
+		powerup_t=0
 	end
 end
 
@@ -418,7 +469,7 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	
+	_t=3
 	add(pill_x,_x)
 	add(pill_y,_y)
 	add(pill_v,true)
