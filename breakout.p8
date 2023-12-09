@@ -3,14 +3,8 @@ version 41
 __lua__
 --goals
 -- 6. powerups
--- 		 - sound effects
--- 		 - black pill
 
 --    - speed down
---    - 1up
---    - sticky
---    - expand
---    - expand/reduct
 --    - megaball
 --    - multiball
 
@@ -60,6 +54,8 @@ function startgame()
 	pad_x=52
 	pad_y=120
 	pad_dx=0
+	
+	pad_wo=24 --original pad width
 	pad_w=24
 	pad_h=3
 	pad_c=7
@@ -184,10 +180,12 @@ function serveball()
 	ball_dx=1
 	ball_dy=-1
 	ball_ang=1
+	pointsmult=1
 	chain=1
 	resetpills()
 	
 	sticky=true
+	sticky_x=flr(pad_w/2)
 	
 	powerup=0
 	powerup_t=0
@@ -240,6 +238,20 @@ end
 function update_game()
 	local buttpress=false
 	local nextx,nexty,brickhit
+	
+	-- check if pad is bigger
+	
+	if powerup==4 then
+		pad_w=flr(pad_wo*1.5)
+	elseif	powerup==5 then
+	-- check if pad should shrink
+		pad_w=flr(pad_wo/2)
+		pointsmult=2
+	else
+		pad_w=pad_wo
+		pointsmult=1
+	end
+	
 	if btn(0) then
 		--left
 		pad_dx=-2.5
@@ -261,6 +273,7 @@ function update_game()
 	
 	if sticky and btnp(5) then
 		sticky=false
+		ball_x=mid(3,ball_x,124)
 	end
 	
 	if not(buttpress) then
@@ -270,12 +283,14 @@ function update_game()
 	pad_x=mid(0,pad_x,127-pad_w)
 
 	if sticky then
-		ball_x=pad_x+flr(pad_w/2)
+		--	ball_x=pad_x+flr(pad_w/2)
+		ball_x=pad_x + sticky_x
 		ball_y=pad_y-ball_r-1
 	else
 		nextx = ball_x+ball_dx
 		nexty = ball_y+ball_dy
 		
+		-- check if ball hit wall
 		if nextx > 124 or nextx < 3 then
 			nextx=mid(0,nextx,127)
 			ball_dx = -ball_dx
@@ -329,8 +344,9 @@ function update_game()
 			chain=1
 			
 			--catch powerup
-			if powerup==3 then
-				sticky=true	
+			if powerup==3 and ball_dy<0 then
+				sticky=true
+				sticky_x=ball_x-pad_x
 			end
 		end
 		
@@ -415,11 +431,11 @@ function powerupget(_p)
 	elseif _p==4 then
 		--expand
 		powerup=4
-		powerup_t=0
+		powerup_t=900
 	elseif _p==5 then
 		--reduce
 		powerup=5
-		powerup_t=0
+		powerup_t=900
 	elseif _p==6 then
 		--megaball
 		powerup=6
@@ -436,7 +452,7 @@ function hitbrick(_i,_combo)
 		sfx(2+chain)
 		brick_v[_i]=false
 		if _combo then
-			points+=10*chain
+			points+=10*chain*pointsmult
 			chain+=1
 			chain=mid(1,chain,7)
 		end
@@ -449,7 +465,7 @@ function hitbrick(_i,_combo)
 		sfx(2+chain)
 		brick_v[_i]=false
 		if _combo then
-			points+=10*chain
+			points+=10*chain*pointsmult
 			chain+=1
 			chain=mid(1,chain,7)
 		end
@@ -458,7 +474,7 @@ function hitbrick(_i,_combo)
 		sfx(2+chain)
 		brick_t[_i]="zz"
 		if _combo then
-			points+=10*chain
+			points+=10*chain*pointsmult
 			chain+=1
 			chain=mid(1,chain,7)
 		end
@@ -469,7 +485,7 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	_t=3
+	_t=5
 	add(pill_x,_x)
 	add(pill_y,_y)
 	add(pill_v,true)
