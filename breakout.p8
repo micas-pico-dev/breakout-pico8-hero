@@ -67,7 +67,12 @@ function startgame()
 	sticky=false
 	
 	chain=1 --combo chain multiplier
-	
+
+	timer_mega=0
+	timer_slow=0
+	timer_expand=0
+	timer_reduce=0
+
 	serveball()
 end
 
@@ -183,8 +188,6 @@ function serveball()
 	
 	sticky_x=flr(pad_w/2)
 	
-	powerup=0
-	powerup_t=0
 end
 
 function newball()
@@ -226,22 +229,26 @@ function setang(bl,ang)
 end
 
 function multiball()
-	ball2=copyball(ball[1])
-	ball3=copyball(ball[1])
+	local ballnum=flr(rnd(#ball))+1
+	local ogball=ball[ballnum]
 	
-	if ball[1].ang==0 then
-		setang(ball2,1)
-		setang(ball3,2)
-	elseif ball[1].ang==1 then
-		setang(ball2,0)
-		setang(ball3,2)
+	ball2=copyball(ogball)
+--	ball3=copyball(ball[1])
+	
+	if ogball.ang==0 then
+		setang(ball2,2)
+--		setang(ball3,2)
+	elseif ogball.ang==1 then
+		setang(ogball,0)
+		setang(ball2,2)
+--		setang(ball3,2)
 	else
 		setang(ball2,0)
-		setang(ball3,1)
+--		setang(ball3,1)
 	end
-	
+	ball2.stuck=false
 	ball[#ball+1]=ball2
-	ball[#ball+1]=ball3
+--	ball[#ball+1]=ball3
 end
 
 function sign(n)
@@ -280,9 +287,9 @@ function update_game()
 	
 	-- check if pad is bigger
 	
-	if powerup==4 then
+	if timer_expand>0 then
 		pad_w=flr(pad_wo*1.5)
-	elseif	powerup==5 then
+	elseif	timer_reduce>0 then
 	-- check if pad should shrink
 		pad_w=flr(pad_wo/2)
 		pointsmult=2
@@ -343,12 +350,23 @@ function update_game()
 		levelover()
 	end
 	
-	if powerup!=0 then
-		powerup_t-=1
-		if powerup_t<=0 then
-			powerup=0
-		end
+	if timer_mega > 0 then
+		timer_mega-=1
 	end
+	
+	-- powerup timers
+	if timer_slow > 0 then
+		timer_slow-=1
+	end
+	
+	if timer_expand > 0 then
+		timer_expand-=1
+	end
+	
+	if timer_reduce > 0 then
+		timer_reduce-=1
+	end
+	
 end
 
 function updateball(bi)
@@ -360,7 +378,7 @@ function updateball(bi)
 	else
 		-- regular ball physics
 		
-		if powerup==1 then
+		if timer_slow>0 then
 			nextx = myball.x+(myball.dx/2)
 			nexty = myball.y+(myball.dy/2)
 		else
@@ -437,8 +455,8 @@ function updateball(bi)
 				-- deal with collision
 				-- find out in which direction to deflect
 				if not(brickhit) then
-					if powerup==6 and bricks[i].t=="i" 
-					or powerup!=6 then
+					if timer_mega>0 and bricks[i].t=="i" 
+					or timer_mega<=0 then
 						if deflx_ball_box(myball.x,myball.y,myball.dx,myball.dy,bricks[i].x,bricks[i].y,brick_w,brick_h) then
 							myball.dx = -myball.dx
 						else
@@ -493,12 +511,9 @@ end
 function powerupget(_p)
 	if _p==1 then
 		--slowdown
-		powerup=1
-		powerup_t=900
+		timer_slow=900
 	elseif _p==2 then
 		--life
-		powerup=2
-		powerup_t=0
 		lives+=1
 	elseif _p==3 then
 		--catch
@@ -513,19 +528,17 @@ function powerupget(_p)
 		end
 	elseif _p==4 then
 		--expand
-		powerup=4
-		powerup_t=900
+		timer_expand=900
+		timer_reduce=0
 	elseif _p==5 then
 		--reduce
-		powerup=5
-		powerup_t=900
+		timer_reduce=900
+		timer_expand=0
 	elseif _p==6 then
 		--megaball
-		powerup=6
-		powerup_t=900
+		timer_mega=900
 	elseif _p==7 then
 		--multiball
-		releasestuck()
 		multiball()
 	end
 end
@@ -542,7 +555,7 @@ function hitbrick(_i,_combo)
 	elseif bricks[_i].t=="i" then
 		sfx(10)
 	elseif bricks[_i].t=="h" then
-		if powerup==6 then
+		if timer_mega>0 then
 			sfx(2+chain)
 			bricks[_i].v=false
 			if _combo then
@@ -578,7 +591,7 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	
+
 	_pill={}
 	_pill.x=_x
 	_pill.y=_y
