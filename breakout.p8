@@ -64,7 +64,7 @@ function startgame()
 	lives=3
 	points=0
 	
-	sticky=true
+	sticky=false
 	
 	chain=1 --combo chain multiplier
 	
@@ -88,7 +88,7 @@ function nextlevel()
 	level=levels[levelnum]
 	buildbricks(level)
 
-	sticky=true
+	sticky=false
 	
 	chain=1
 	
@@ -175,12 +175,12 @@ function serveball()
 	ball[1].dx=1
 	ball[1].dy=-1
 	ball[1].ang=1
+	ball[1].stuck=true
 	
 	pointsmult=1
 	chain=1
 	resetpills()
 	
-	sticky=true
 	sticky_x=flr(pad_w/2)
 	
 	powerup=0
@@ -195,6 +195,7 @@ function newball()
 	b.dx=0
 	b.dy=0
 	b.ang=1
+	b.stuck=false
 	return b
 end
 
@@ -206,6 +207,7 @@ function copyball(ob)
 	b.dx=ob.dx
 	b.dy=ob.dy
 	b.ang=ob.ang
+	b.stuck=ob.stuck
 	return b
 end
 
@@ -294,23 +296,18 @@ function update_game()
 		pad_dx=-2.5
 		buttpress=true
 		--pad_x-=5
-		if sticky then
-			ball[1].dx=-1
-		end
+		pointstuck(-1)
 	end
 	if btn(1) then
 		--right
 		pad_dx=2.5
 		buttpress=true
 		--pad_x+=5
-		if sticky then
-			ball[1].dx=1
-		end
+		pointstuck(1)
 	end
 	
-	if sticky and btnp(5) then
-		sticky=false
-		ball[1].x=mid(3,ball[1].x,124)
+	if btnp(5) then
+		releasestuck()
 	end
 	
 	if not(buttpress) then
@@ -355,13 +352,14 @@ function update_game()
 end
 
 function updateball(bi)
-	if sticky then
+	local myball=ball[bi]
+	if myball.stuck then
 		--	ball_x=pad_x+flr(pad_w/2)
-		ball[1].x=pad_x + sticky_x
-		ball[1].y=pad_y-ball_r-1
+		myball.x=pad_x + sticky_x
+		myball.y=pad_y-ball_r-1
 	else
 		-- regular ball physics
-		local myball=ball[bi]
+		
 		if powerup==1 then
 			nextx = myball.x+(myball.dx/2)
 			nexty = myball.y+(myball.dy/2)
@@ -424,8 +422,10 @@ function updateball(bi)
 			chain=1
 			
 			--catch powerup
-			if powerup==3 and myball.dy<0 then
-				sticky=true
+			if sticky and myball.dy<0 then
+				releasestuck()
+				sticky=false
+				myball.stuck=true
 				sticky_x=myball.x-pad_x
 			end
 		end
@@ -471,6 +471,25 @@ function updateball(bi)
 	end--end of sticky if
 end
 
+function releasestuck()
+		-- big ball loop
+	for i=1,#ball do
+		if ball[i].stuck then
+			ball[i].x=mid(3,ball[i].x,124)
+			ball[i].stuck=false
+		end
+	end
+end
+
+function pointstuck(sign)
+		-- big ball loop
+	for i=1,#ball do
+		if ball[i].stuck then
+			ball[i].dx=abs(ball[i].dx)*sign
+		end
+	end
+end
+
 function powerupget(_p)
 	if _p==1 then
 		--slowdown
@@ -483,8 +502,15 @@ function powerupget(_p)
 		lives+=1
 	elseif _p==3 then
 		--catch
-		powerup=3
-		powerup_t=900
+		local hasstuck=false
+		for i=1,#ball do
+			if ball[i].stuck then
+				hasstuck=true
+			end
+		end
+		if hasstuck==false then
+			sticky=true
+		end
 	elseif _p==4 then
 		--expand
 		powerup=4
@@ -499,8 +525,7 @@ function powerupget(_p)
 		powerup_t=900
 	elseif _p==7 then
 		--multiball
-		powerup=7
-		powerup_t=900
+		releasestuck()
 		multiball()
 	end
 end
@@ -553,7 +578,7 @@ function spawnpill(_x,_y)
 	local _t
 	
 	_t=flr(rnd(7)+1)
-	_t=7
+	
 	_pill={}
 	_pill.x=_x
 	_pill.y=_y
@@ -630,12 +655,9 @@ function draw_game()
 	cls(1)
 	for i=1,#ball do
 		circfill(ball[i].x,ball[i].y,ball_r, 10)
-	end
-	
-	if sticky then
-		-- serve preview
-		line(ball[1].x+ball[1].dx*4,ball[1].y+ball[1].dy*4,ball[1].x+ball[1].dx*6,ball[1].y+ball[1].dy*6,10)
-		
+		if ball[i].stuck then
+			line(ball[i].x+ball[i].dx*4,ball[i].y+ball[i].dy*4,ball[i].x+ball[i].dx*6,ball[i].y+ball[i].dy*6,10)
+		end
 	end
 	
 	rectfill(pad_x,pad_y,pad_x+pad_w,pad_y+pad_h,pad_c)
