@@ -3,11 +3,19 @@ version 41
 __lua__
 --goals
 -- 7. juicyness 
---     arrow anim
 --     text blinking
+--     arrow anim
 --     particles
---     screenshake
+--      - death particles
+--      - brick particles
+--      - collision particles
 -- 8. high score
+-- 9. ui
+--    - powerup messages
+--    - powerup percentage bar
+-- 10. better collision
+-- 11. gameplay tweaks
+--     - smaller paddle     
 
 function _init()
 	cls()
@@ -16,10 +24,11 @@ function _init()
 	debug=""
 	levelnum=1
 	levels={}
-	levels[1]="b9b/p9p"
+	levels[1]="b9b/p9p/sbsbsbsbsb"
 --	levels[2]="x4b"
 --	levels[1] = "hxixsxpxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbxbx"
 	--levels[1] = "////x4b/s9s"
+	shake=0
 end
 
 function _update60()
@@ -476,8 +485,10 @@ function updateball(bi)
 		if nexty > 127 then
 			sfx(2)
 			if #ball > 1 then
+				shake+=0.15
 				del(ball,myball)
 			else
+				shake+=0.4
 				lives-=1
 				if lives<0 then
 					gameover()
@@ -603,13 +614,17 @@ end
 
 function checkexplosions()
 	for i=1,#bricks do
-		if bricks[i].t == "zz" then
-			brick_t[i] = "z"
+		if bricks[i].t == "zz" and bricks[i].v then
+			bricks[i].t = "z"
 		end
 	end
 	for i=1,#bricks do
-		if bricks[i].t == "z" then
+		if bricks[i].t == "z" and bricks[i].v then
 			explodebrick(i)
+			shake+=0.4
+			if shake>1 then
+				shake=1
+			end
 		end
 	end
 	for i=1,#bricks do
@@ -627,12 +642,14 @@ function explodebrick(_i)
 		and abs(bricks[j].x - bricks[_i].x) <= (brick_w+2)
 		and abs(bricks[j].y - bricks[_i].y) <= (brick_h+2)
 		then
-			hitbrick(j)
+			hitbrick(j,false)
 		end
 	end
+
 end
 
 function _draw()
+	doshake()
 	if mode=="game" then
 		draw_game()
 	elseif mode=="start" then
@@ -664,8 +681,9 @@ end
 
 function draw_game()
 	local i
-	
-	cls(1)
+	cls()
+--	cls(1)
+	rectfill(0,0,127,127,1)
 	for i=1,#ball do
 		circfill(ball[i].x,ball[i].y,ball_r, 10)
 		if ball[i].stuck then
@@ -766,6 +784,24 @@ function deflx_ball_box(bx,by,bdx,bdy,tx,ty,tw,th)
 		cy=ty-by
 		return cx < 0 and cy/cx >= slp
 	end
+end
+
+--------- juicy stuff --------
+
+function doshake()
+	-- -16 +16
+	local shakex=16-rnd(32)
+	local shakey=16-rnd(32)
+	
+	shakex=shakex*shake	
+	shakey=shakey*shake
+	
+	camera(shakex,shakey)
+	
+	shake=shake*0.95
+	if shake<0.05 then
+		shake=0
+	end	
 end
 __gfx__
 0000000006777760067777600677776006777760f677777f06777760067777600000000000000000000000000000000000000000000000000000000000000000
